@@ -1,7 +1,7 @@
-import FluentSQLite
+import FluentMySQL
 import Vapor
 
-final class Tournament: SQLiteModel {
+final class Tournament: MySQLModel {
     var id: Int?
     var title: String
     var date: Double

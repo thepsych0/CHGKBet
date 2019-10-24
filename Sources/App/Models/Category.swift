@@ -1,7 +1,7 @@
-import FluentSQLite
+import FluentMySQL
 import Vapor
 
-final class Category: SQLiteModel {
+final class Category: MySQLModel {
     var id: Int?
     var title: String
 
