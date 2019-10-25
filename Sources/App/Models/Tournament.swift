@@ -1,7 +1,7 @@
-import FluentMySQL
+import FluentPostgreSQL
 import Vapor
 
-final class Tournament: MySQLModel {
+final class Tournament: PostgreSQLModel {
     var id: Int?
     var title: String
     var date: Double

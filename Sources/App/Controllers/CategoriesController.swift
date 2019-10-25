@@ -1,5 +1,5 @@
 import Vapor
-import FluentMySQL
+import FluentPostgreSQL
 
 final class CategoriesController {
     func index(_ req: Request) throws -> Future<[Category]> {

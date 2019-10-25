@@ -1,5 +1,5 @@
 import Vapor
-import FluentMySQL
+import FluentPostgreSQL
 
 final class TournamentsController {
     func index(_ req: Request) throws -> Future<[Tournament]> {

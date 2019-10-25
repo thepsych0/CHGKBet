@@ -1,10 +1,10 @@
-import FluentMySQL
+import FluentPostgreSQL
 import Vapor
 
 /// Called before your application initializes.
 public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services) throws {
     // Register providers first
-    try services.register(FluentMySQLProvider())
+    try services.register(FluentPostgreSQLProvider())
 
     // Register routes to the router
     let router = EngineRouter.default()
@@ -17,19 +17,19 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     middlewares.use(ErrorMiddleware.self) // Catches errors and converts to HTTP response
     services.register(middlewares)
 
-    // Configure a SQLite database
+    // Configure a PostgreSQL database
     let dbPath = DirectoryConfig.detect().workDir + "CHGKBet.db"
-    let config = MySQLDatabaseConfig.root(database: dbPath)
-    let mysql = MySQLDatabase(config: config)
+    let config = PostgreSQLDatabaseConfig(hostname: "localhost", port: 5432, username: "thepsych0", database: "chgkbet", password: nil, transport: .cleartext)
+    let postgres = PostgreSQLDatabase(config: config)
 
-    // Register the configured SQLite database to the database config.
+    // Register the configured PostgreSQL database to the database config.
     var databases = DatabasesConfig()
-    databases.add(database: mysql, as: .mysql)
+    databases.add(database: postgres, as: .psql)
     services.register(databases)
 
     // Configure migrations
     var migrations = MigrationConfig()
-    migrations.add(model: Tournament.self, database: .mysql)
-    migrations.add(model: Category.self, database: .mysql)
+    migrations.add(model: Tournament.self, database: .psql)
+    migrations.add(model: Category.self, database: .psql)
     services.register(migrations)
 }
