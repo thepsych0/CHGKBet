@@ -8,5 +8,8 @@ public func routes(_ router: Router) throws {
     }
 
     let tournamentsController = TournamentsController()
-    router.get("tournaments", use: tournamentsController.index)
+    router.get("api", "tournaments", use: tournamentsController.index)
+
+    let userRouteController = UserController()
+    try userRouteController.boot(router: router)
 }
