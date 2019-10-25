@@ -18,8 +18,13 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     services.register(middlewares)
 
     // Configure a PostgreSQL database
-    let dbPath = DirectoryConfig.detect().workDir + "CHGKBet.db"
-    let config = PostgreSQLDatabaseConfig(hostname: "localhost", port: 5432, username: "thepsych0", database: "chgkbet", password: nil, transport: .cleartext)
+    //let config = PostgreSQLDatabaseConfig(hostname: "localhost", port: 5432, username: "thepsych0", database: "chgkbet", password: nil, transport: .cleartext)
+    let config: PostgreSQLDatabaseConfig
+    if let url = Environment.get("DB_POSTGRESQL")  {
+        config = PostgreSQLDatabaseConfig(url: url)!
+    } else {
+        config = PostgreSQLDatabaseConfig(hostname: "localhost", port: 5432, username: "thepsych0", database: "chgkbet", password: nil, transport: .cleartext)
+    }
     let postgres = PostgreSQLDatabase(config: config)
 
     // Register the configured PostgreSQL database to the database config.
