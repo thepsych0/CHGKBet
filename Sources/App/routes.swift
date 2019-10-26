@@ -8,9 +8,18 @@ public func routes(_ router: Router) throws {
     }
 
     let tournamentsController = TournamentsController()
-    router.get("tournaments", use: tournamentsController.index)
+    router.get("api", "tournaments", use: tournamentsController.index)
+    
+    let gamesController = GamesController()
+    router.get("api", "games", String.parameter) { req -> GameInfo in
+        let gameID = try req.parameters.next(String.self)
+        if let gameInfo = gamesController.getGameInfo(id: gameID) {
+            return gameInfo
+        } else {
+            throw Abort(.badRequest, reason: "No game exists with this ID." , identifier: nil)
+        }
+    }
 
-    let categoriesController = CategoriesController()
-    router.get("tournaments", Int.parameter, "categories", use: categoriesController.index)
-    //router.post("tournaments", use: tournamentsController.create)
+    let userRouteController = UserController()
+    try userRouteController.boot(router: router)
 }
