@@ -16,7 +16,7 @@ private extension UserController {
     func registerUserHandler(_ request: Request, newUser: User) throws -> Future<HTTPResponseStatus> {
         return User.query(on: request).filter(\.login == newUser.login).first().flatMap { existingUser in
             guard existingUser == nil else {
-                throw Abort(.badRequest, reason: "A user with this email already exists" , identifier: nil)
+                throw Abort(.badRequest, reason: "A user with this email already exists." , identifier: nil)
             }
 
             let digest = try request.make(BCryptDigest.self)
