@@ -1,7 +1,6 @@
 import Foundation
 import Vapor
 import Fluent
-import FluentSQLite
 import Crypto
 
 class UserController: RouteCollection {
