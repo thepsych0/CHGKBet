@@ -11,13 +11,11 @@ public func routes(_ router: Router) throws {
     router.get("api", "tournaments", use: tournamentsController.index)
     
     let gamesController = GamesController()
-    router.get("api", "games", String.parameter) { req -> GameInfo in
-        let gameID = try req.parameters.next(String.self)
-        if let gameInfo = gamesController.getGameInfo(id: gameID) {
-            return gameInfo
-        } else {
+    router.get("api", "games") { req -> [String: GameInfo] in
+        guard let ids = req.query[Array<String>.self, at: "id"] else {
             throw Abort(.badRequest, reason: "No game exists with this ID." , identifier: nil)
         }
+        return gamesController.getGamesInfo(ids: ids)
     }
 
     let userRouteController = UserController()
