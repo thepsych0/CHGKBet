@@ -1,4 +1,6 @@
 import Vapor
+import Authentication
+import Crypto
 
 /// Register your application's routes here.
 public func routes(_ router: Router) throws {
@@ -6,6 +8,17 @@ public func routes(_ router: Router) throws {
     router.get { req in
         return "It works!"
     }
+
+    // MARK: Authorization
+
+    let basicAuthMiddleware = User.basicAuthMiddleware(using: BCrypt)
+    let guardAuthMiddleware = User.guardAuthMiddleware()
+    let basicAuthGroup = router.grouped([basicAuthMiddleware, guardAuthMiddleware])
+
+    let userRouteController = UserController()
+    try userRouteController.boot(router: router)
+
+    // MARK: Line
 
     let tournamentsController = TournamentsController()
     router.get("api", "tournaments", use: tournamentsController.index)
@@ -25,6 +38,6 @@ public func routes(_ router: Router) throws {
         return try eventsController.index(req, tournamentID: tournamentID, gameID: gameID)
     }
 
-    let userRouteController = UserController()
-    try userRouteController.boot(router: router)
+    let bettingController = BettingController()
+    basicAuthGroup.post("api", "bet", use: bettingController.makeBet)
 }
