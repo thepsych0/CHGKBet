@@ -9,3 +9,8 @@ struct User: Content, PostgreSQLModel, Migration {
     private(set) var login: String
     private(set) var password: String
 }
+
+extension User: BasicAuthenticatable {
+    static let usernameKey: WritableKeyPath<User, String> = \.login
+    static let passwordKey: WritableKeyPath<User, String> = \.password
+}

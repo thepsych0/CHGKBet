@@ -1,4 +1,6 @@
 import Vapor
+import Authentication
+import Crypto
 
 /// Register your application's routes here.
 public func routes(_ router: Router) throws {
@@ -7,19 +9,38 @@ public func routes(_ router: Router) throws {
         return "It works!"
     }
 
+    // MARK: Authorization
+
+    let basicAuthMiddleware = User.basicAuthMiddleware(using: BCrypt)
+    let guardAuthMiddleware = User.guardAuthMiddleware()
+    let basicAuthGroup = router.grouped([basicAuthMiddleware, guardAuthMiddleware])
+
+    let authorizationController = AuthorizationController()
+    try authorizationController.boot(router: router)
+    router.get("api", "users", "authorize", use: authorizationController.authorize)
+
+    // MARK: Line
+
     let tournamentsController = TournamentsController()
     router.get("api", "tournaments", use: tournamentsController.index)
     
     let gamesController = GamesController()
-    router.get("api", "games", String.parameter) { req -> GameInfo in
-        let gameID = try req.parameters.next(String.self)
-        if let gameInfo = gamesController.getGameInfo(id: gameID) {
-            return gameInfo
-        } else {
+    router.get("api", "games") { req -> [String: GameInfo] in
+        guard let ids = req.query[Array<String>.self, at: "ids"] else {
             throw Abort(.badRequest, reason: "No game exists with this ID." , identifier: nil)
         }
+        return gamesController.getGamesInfo(ids: ids)
+    }
+    
+    let eventsController = EventsController()
+    router.get("api", "events", Int.parameter, String.parameter) { req -> EventLoopFuture<[Event]> in
+        let tournamentID = try req.parameters.next(Int.self)
+        let gameID = try req.parameters.next(String.self)
+        return try eventsController.index(req, tournamentID: tournamentID, gameID: gameID)
     }
 
-    let userRouteController = UserController()
-    try userRouteController.boot(router: router)
+    let bettingController = BettingController()
+    basicAuthGroup.post("api", "bets", use: bettingController.makeBet)
 }
+
+extension Bool: Content {}

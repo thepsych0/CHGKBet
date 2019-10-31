@@ -30,11 +30,12 @@ enum Game: String {
     }
 
     var gameInfo: GameInfo {
-        return GameInfo(title: title, info: info)
+        return GameInfo(id: rawValue, title: title, additionalInfo: info)
     }
 }
 
 struct GameInfo: Content {
+    let id: String
     let title: String
-    let info: String?
+    let additionalInfo: String?
 }

@@ -1,10 +1,12 @@
 import FluentPostgreSQL
 import Vapor
+import Authentication
 
 /// Called before your application initializes.
 public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services) throws {
     // Register providers first
     try services.register(FluentPostgreSQLProvider())
+    try services.register(AuthenticationProvider())
 
     // Register routes to the router
     let router = EngineRouter.default()
@@ -19,11 +21,11 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
 
     // Configure a PostgreSQL database
     let config: PostgreSQLDatabaseConfig
-    if let type = env.type, type == .production {
+//    if let type = env.type, type == .production {
         config = PostgreSQLDatabaseConfig(url: "postgres://tbbahuxiiktnso:516fcc2af6165c87bb724eea1aae51cc1759203e5a59e6126d7e9f89bc541c07@ec2-54-220-0-91.eu-west-1.compute.amazonaws.com:5432/dv6a1uqbbflbf", transport: .unverifiedTLS)!
-    } else {
-        config = PostgreSQLDatabaseConfig(hostname: "localhost", port: 5432, username: "thepsych0", database: "chgkbet", password: nil, transport: .cleartext)
-    }
+//    } else {
+//        config = PostgreSQLDatabaseConfig(hostname: "localhost", port: 5432, username: "thepsych0", database: "chgkbet", password: nil, transport: .cleartext)
+//    }
     let postgres = PostgreSQLDatabase(config: config)
 
     // Register the configured PostgreSQL database to the database config.
@@ -36,6 +38,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     migrations.add(model: Tournament.self, database: .psql)
     migrations.add(model: User.self, database: .psql)
     migrations.add(model: Event.self, database: .psql)
+    migrations.add(model: Bet.self, database: .psql)
     services.register(migrations)
 }
 
