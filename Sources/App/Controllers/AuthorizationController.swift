@@ -3,15 +3,20 @@ import Vapor
 import Fluent
 import Crypto
 
-class UserController: RouteCollection {
+class AuthorizationController: RouteCollection {
     func boot(router: Router) throws {
         let group = router.grouped("api", "users")
         group.post(User.self, at: "register", use: registerUserHandler)
     }
+
+    func authorize(_ req: Request) throws -> HTTPResponseStatus {
+        _ = try req.requireAuthenticated(User.self)
+        return .ok
+    }
 }
 
 //MARK: Helper
-private extension UserController {
+private extension AuthorizationController {
 
     func registerUserHandler(_ request: Request, newUser: User) throws -> Future<HTTPResponseStatus> {
         return User.query(on: request).filter(\.login == newUser.login).first().flatMap { existingUser in
