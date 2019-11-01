@@ -17,7 +17,7 @@ public func routes(_ router: Router) throws {
 
     let authorizationController = UsersController()
     try authorizationController.boot(router: router)
-    router.get("api", "users", "me", use: authorizationController.getUserInfo)
+    basicAuthGroup.get("api", "users", "me", use: authorizationController.getUserInfo)
 
     // MARK: Line
 
