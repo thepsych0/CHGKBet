@@ -66,7 +66,7 @@ class UsersController: RouteCollection {
             .all()
         
         return users.map { topUsers -> [[String: Double]] in
-            return topUsers.map { [$0.login: $0.info?.balance ?? 0] }
+            return topUsers.map { [$0.email: $0.info?.balance ?? 0] }
         }
     }
 }
@@ -75,9 +75,10 @@ class UsersController: RouteCollection {
 private extension UsersController {
 
     func registerUserHandler(_ request: Request, newUser: User) throws -> Future<HTTPResponseStatus> {
-        return User.query(on: request).filter(\.login == newUser.login).first().flatMap { existingUser in
+        guard newUser.email.isValidEmail() else { throw Abort(.badRequest, reason: "Email is invalid.") }
+        return User.query(on: request).filter(\.email == newUser.email).first().flatMap { existingUser in
             guard existingUser == nil else {
-                throw Abort(.badRequest, reason: "A user with this login already exists." , identifier: nil)
+                throw Abort(.badRequest, reason: "A user with this login already exists.")
             }
 
             let tournaments = Tournament.query(on: request).all()
@@ -92,7 +93,7 @@ private extension UsersController {
                 let balance: Double = isInPeriod ? baseBalance + tournamentBalance : baseBalance
                 let persistedUser = User(
                     id: nil,
-                    login: newUser.login,
+                    email: newUser.email,
                     password: hashedPassword,
                     ratingID: newUser.ratingID,
                     info: UserInfo(
