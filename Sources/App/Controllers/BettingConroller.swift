@@ -3,7 +3,8 @@ import FluentPostgreSQL
 
 final class BettingController {
     func makeBet(_ req: Request) throws -> Future<HTTPResponseStatus> {
-        let user = try req.requireAuthenticated(User.self)
+        var user = try req.requireAuthenticated(User.self)
+        guard user.info != nil else { throw Abort(.internalServerError) }
 
 
         return try req.content.decode(Bet.self).flatMap { bet in
@@ -13,15 +14,20 @@ final class BettingController {
                 .all()
 
             return events.flatMap { events -> Future<HTTPResponseStatus> in
-                if events.isEmpty {
-                    throw Abort(.badRequest, reason: "Incorrect event ID." , identifier: nil)
-                } else if !events.first!.options.contains(where: { $0.title == bet.selectedOptionTitle }) {
-                    throw Abort(.badRequest, reason: "Incorrect option title." , identifier: nil)
-                } else {
-                    var betWithUserID = Bet(id: bet.id, eventID: bet.eventID, selectedOptionTitle: bet.selectedOptionTitle, amount: bet.amount)
-                    betWithUserID.userID = user.id
-                    return betWithUserID.save(on: req).transform(to: .created)
+                guard !events.isEmpty else { throw Abort(.badRequest, reason: "Incorrect event ID.") }
+                guard events.first!.options.contains(where: { $0.title == bet.selectedOptionTitle }) else {
+                    throw Abort(.badRequest, reason: "Incorrect option title.")
                 }
+                guard bet.amount > 0 else { throw Abort(.badRequest, reason: "Bet amount should be greater than 0.") }
+                guard bet.amount <= user.info?.balance ?? 0 else { throw Abort(.badRequest, reason: "You don't have enough funds.") }
+
+                var betWithUserID = Bet(id: bet.id, eventID: bet.eventID, selectedOptionTitle: bet.selectedOptionTitle, amount: bet.amount)
+                betWithUserID.userID = user.id
+                user.info!.balance -= bet.amount
+                user.info!.betHistory.append(bet)
+                let saveBet = betWithUserID.save(on: req)
+                let saveUser = user.save(on: req)
+                return saveBet.and(saveUser).transform(to: .created)
             }
         }
     }

@@ -9,15 +9,20 @@ public func routes(_ router: Router) throws {
         return "It works!"
     }
 
-    // MARK: Authorization
+    // MARK: Users
 
     let basicAuthMiddleware = User.basicAuthMiddleware(using: BCrypt)
     let guardAuthMiddleware = User.guardAuthMiddleware()
     let basicAuthGroup = router.grouped([basicAuthMiddleware, guardAuthMiddleware])
 
-    let authorizationController = UsersController()
-    try authorizationController.boot(router: router)
-    basicAuthGroup.get("api", "users", "me", use: authorizationController.getUserInfo)
+    let usersController = UsersController()
+    try usersController.boot(router: router)
+    basicAuthGroup.get("api", "users", "me", use: usersController.getUserInfo)
+    basicAuthGroup.post("api", "users", "rating", "updateID", use: usersController.setRatingID)
+    router.get("api", "users", "rating", "check", String.parameter) { req -> Future<RatingResponse> in
+        let id = try req.parameters.next(String.self)
+        return try usersController.checkRatingID(req: req, id: id)
+    }
 
     // MARK: Line
 

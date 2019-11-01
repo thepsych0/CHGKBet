@@ -14,6 +14,44 @@ class UsersController: RouteCollection {
         guard let userInfo = user.info else { throw Abort(.badRequest) }
         return userInfo
     }
+
+    //MARK: Rating
+
+    func checkRatingID(req: Request, id: String) throws -> Future<RatingResponse> {
+
+        let client = try req.client()
+        let response = client.get("https://rating.chgk.info/api/players/\(id)")
+
+        let users = User.query(on: req)
+            .filter(\User.ratingID == id)
+            .all()
+
+        return response
+            .and(users)
+            .flatMap { res -> Future<RatingResponse> in
+                guard res.1.isEmpty else { throw Abort(.badRequest, reason: "User with this rating ID already exists.") }
+                let ratingResponse = try res.0.content.decode(json: [RatingResponse].self, using: JSONDecoder())
+                return ratingResponse.map { players in
+                    guard let player = players.first else { throw Abort(.locked) }
+                    return player
+                }
+            }
+    }
+
+    func setRatingID(_ req: Request) throws -> Future<HTTPResponseStatus> {
+        var user = try req.requireAuthenticated(User.self)
+        guard let ratingID = req.query[String.self, at: "id"] else {
+            throw Abort(.badRequest, reason: "Parameter \"ratingID\" is required." , identifier: nil)
+        }
+        let users = User.query(on: req)
+            .filter(\User.ratingID == ratingID)
+            .all()
+        return users.flatMap { usersWithGivenRatingID -> Future<HTTPResponseStatus> in
+            guard usersWithGivenRatingID.isEmpty else { throw Abort(.badRequest, reason: "User with this rating ID already exists.") }
+            user.ratingID = ratingID
+            return user.save(on: req).transform(to: .created)
+        }
+    }
 }
 
 //MARK: Helper
@@ -57,3 +95,9 @@ private extension UsersController {
 private let tournamentPeriodInSeconds: Double = 7 * 24 * 60 * 60
 private let baseBalance: Double = 1000
 private let tournamentBalance: Double = 500
+
+struct RatingResponse: Codable, Content {
+    var name: String?
+    var patronymic: String?
+    var surname: String?
+}

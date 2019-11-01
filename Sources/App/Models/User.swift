@@ -8,8 +8,13 @@ struct User: Content, PostgreSQLModel, Migration {
     var id: Int?
     private(set) var login: String
     private(set) var password: String
-    private(set) var ratingID: String?
-    private(set) var info: UserInfo?
+    var ratingID: String? {
+        didSet {
+            guard let ratingID = ratingID else { return }
+            info?.ratingURL = "https://rating.chgk.info/player/\(ratingID)"
+        }
+    }
+    var info: UserInfo?
 }
 
 extension User: BasicAuthenticatable {
