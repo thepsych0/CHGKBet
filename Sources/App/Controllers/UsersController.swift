@@ -4,6 +4,9 @@ import Fluent
 import Crypto
 
 class UsersController: RouteCollection {
+    
+    //MARK: Auth
+    
     func boot(router: Router) throws {
         let group = router.grouped("api", "users")
         group.post(User.self, at: "register", use: registerUserHandler)
@@ -50,6 +53,20 @@ class UsersController: RouteCollection {
             guard usersWithGivenRatingID.isEmpty else { throw Abort(.badRequest, reason: "User with this rating ID already exists.") }
             user.ratingID = ratingID
             return user.save(on: req).transform(to: .created)
+        }
+    }
+    
+    // MARK: Top
+    
+    func topUsers(_ req: Request) throws -> Future<[[String: Double]]> {
+        let users = User.query(on: req)
+            .filter(\User.ratingID != nil)
+            .sort(\User.info?.balance)
+            .range(..<10)
+            .all()
+        
+        return users.map { topUsers -> [[String: Double]] in
+            return topUsers.map { [$0.login: $0.info?.balance ?? 0] }
         }
     }
 }

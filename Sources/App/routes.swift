@@ -46,6 +46,10 @@ public func routes(_ router: Router) throws {
 
     let bettingController = BettingController()
     basicAuthGroup.post("api", "bets", use: bettingController.makeBet)
+    
+    // MARK: Top
+    
+    router.get("api", "top", use: usersController.topUsers)
 }
 
 extension Bool: Content {}
