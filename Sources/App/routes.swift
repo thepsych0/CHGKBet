@@ -15,9 +15,9 @@ public func routes(_ router: Router) throws {
     let guardAuthMiddleware = User.guardAuthMiddleware()
     let basicAuthGroup = router.grouped([basicAuthMiddleware, guardAuthMiddleware])
 
-    let authorizationController = AuthorizationController()
+    let authorizationController = UsersController()
     try authorizationController.boot(router: router)
-    router.get("api", "users", "authorize", use: authorizationController.authorize)
+    router.get("api", "users", "me", use: authorizationController.getUserInfo)
 
     // MARK: Line
 
