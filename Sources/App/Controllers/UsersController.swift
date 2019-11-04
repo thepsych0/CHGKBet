@@ -56,6 +56,7 @@ class UsersController: RouteCollection {
             user.ratingID = id
             return try self.checkRatingID(req: req, id: id).flatMap { ratingResponse -> Future<UserInfo> in
                 user.infoWithID?.ratingData = ratingResponse
+                user.infoWithID?.ratingData?.id = id
                 return user.save(on: req).map { savedUser -> UserInfo in
                     return user.infoWithID!
                 }
@@ -68,8 +69,8 @@ class UsersController: RouteCollection {
     func topPlayers(_ req: Request) throws -> Future<[PlayerInfo]> {
         let users = User.query(on: req)
             .filter(\User.ratingID != nil)
-            .sort(\User.infoWithID?.balance)
-            .range(..<10)
+            .sort(\User.infoWithID?.balance, .descending)
+            .range(..<11)
             .all()
         
         return users.map { topUsers -> [PlayerInfo] in
