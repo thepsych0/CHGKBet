@@ -14,7 +14,24 @@ struct User: Content, PostgreSQLModel, Migration {
             info?.ratingURL = "https://rating.chgk.info/player/\(ratingID)"
         }
     }
-    var info: UserInfo?
+    private var info: UserInfo?
+    var infoWithID: UserInfo? {
+        get {
+            var newInfo = info
+            newInfo?.id = id
+            return newInfo
+        } set {
+            info = newValue
+        }
+    }
+
+    init(id: Int? = nil, email: String, password: String, ratingID: String? = nil, info: UserInfo? = nil) {
+        self.id = id
+        self.email = email
+        self.password = password
+        self.ratingID = ratingID
+        self.info = info
+    }
 }
 
 extension User: BasicAuthenticatable {

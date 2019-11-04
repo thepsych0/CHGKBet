@@ -4,6 +4,10 @@ import Fluent
 import Crypto
 
 class UsersController: RouteCollection {
+
+    private let tournamentPeriodInSeconds: Double = 7 * 24 * 60 * 60
+    private let baseBalance: Double = 1000
+    private let tournamentBalance: Double = 500
     
     //MARK: Auth
     
@@ -14,7 +18,7 @@ class UsersController: RouteCollection {
 
     func getUserInfo(_ req: Request) throws -> UserInfo {
         let user = try req.requireAuthenticated(User.self)
-        guard let userInfo = user.info else { throw Abort(.badRequest) }
+        guard let userInfo = user.infoWithID else { throw Abort(.badRequest) }
         return userInfo
     }
 
@@ -54,7 +58,7 @@ class UsersController: RouteCollection {
             guard usersWithGivenRatingID.isEmpty else { throw Abort(.badRequest, reason: "User with this rating ID already exists.") }
             user.ratingID = ratingID
             return try self.checkRatingID(req: req, id: ratingID).flatMap { ratingResponse -> Future<HTTPResponseStatus> in
-                user.info?.ratingData = ratingResponse
+                user.infoWithID?.ratingData = ratingResponse
                 return user.save(on: req).transform(to: .created)
             }
         }
@@ -65,12 +69,12 @@ class UsersController: RouteCollection {
     func topUsers(_ req: Request) throws -> Future<[[String: Double]]> {
         let users = User.query(on: req)
             .filter(\User.ratingID != nil)
-            .sort(\User.info?.balance)
+            .sort(\User.infoWithID?.balance)
             .range(..<10)
             .all()
         
         return users.map { topUsers -> [[String: Double]] in
-            return topUsers.map { [$0.email: $0.info?.balance ?? 0] }
+            return topUsers.map { [$0.email: $0.infoWithID?.balance ?? 0] }
         }
     }
 }
@@ -86,15 +90,17 @@ private extension UsersController {
             }
 
             let tournaments = Tournament.query(on: request).all()
-            return tournaments.flatMap { tournaments -> Future<UserInfo> in
-                let isInPeriod = tournaments.filter { tournament in
+            return tournaments.flatMap { [weak self] tournaments -> Future<UserInfo> in
+                guard let self = self else { throw Abort(.internalServerError, reason: "Unknown error.") }
+                let nearbyTournaments = tournaments.filter { tournament in
                     let difference = Date(timeIntervalSince1970: tournament.date).timeIntervalSince1970 - Date().timeIntervalSince1970
-                    return difference > 0 && difference < tournamentPeriodInSeconds
-                }.isEmpty
+                    return difference > 0 && difference < self.tournamentPeriodInSeconds
+                }
+                let isInPeriod = !nearbyTournaments.isEmpty
 
                 let digest = try request.make(BCryptDigest.self)
                 let hashedPassword = try digest.hash(newUser.password)
-                let balance: Double = isInPeriod ? baseBalance + tournamentBalance : baseBalance
+                let balance: Double = isInPeriod ? self.tournamentBalance + self.baseBalance : self.baseBalance
                 let persistedUser = User(
                     id: nil,
                     email: newUser.email,
@@ -108,15 +114,13 @@ private extension UsersController {
                     )
                 )
 
-                return persistedUser.save(on: request).transform(to: persistedUser.info!)
+                return persistedUser.save(on: request).map { savedUser -> UserInfo in
+                    return savedUser.infoWithID!
+                }
             }
         }
     }
 }
-
-private let tournamentPeriodInSeconds: Double = 7 * 24 * 60 * 60
-private let baseBalance: Double = 1000
-private let tournamentBalance: Double = 500
 
 struct RatingResponse: Codable, Content {
     var name: String?
