@@ -25,6 +25,7 @@ extension User: BasicAuthenticatable {
 struct UserInfo: Content, PostgreSQLModel, Migration {
     var id: Int?
     var ratingURL: String?
+    var ratingData: RatingResponse?
     var balance: Double
     var betHistory: [Bet]
 }

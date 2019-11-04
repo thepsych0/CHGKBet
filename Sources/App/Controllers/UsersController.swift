@@ -46,10 +46,14 @@ class UsersController: RouteCollection {
         let users = User.query(on: req)
             .filter(\User.ratingID == ratingID)
             .all()
-        return users.flatMap { usersWithGivenRatingID -> Future<HTTPResponseStatus> in
+        return users.flatMap { [weak self] usersWithGivenRatingID -> Future<HTTPResponseStatus> in
+            guard let self = self else { throw Abort(.internalServerError, reason: "Unknown error.") }
             guard usersWithGivenRatingID.isEmpty else { throw Abort(.badRequest, reason: "User with this rating ID already exists.") }
             user.ratingID = ratingID
-            return user.save(on: req).transform(to: .created)
+            return try self.checkRatingID(req: req, id: ratingID).flatMap { ratingResponse -> Future<HTTPResponseStatus> in
+                user.info?.ratingData = ratingResponse
+                return user.save(on: req).transform(to: .created)
+            }
         }
     }
 }
