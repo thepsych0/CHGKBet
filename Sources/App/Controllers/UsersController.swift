@@ -69,12 +69,14 @@ class UsersController: RouteCollection {
     func topPlayers(_ req: Request) throws -> Future<[PlayerInfo]> {
         let users = User.query(on: req)
             .filter(\User.ratingID != nil)
-            .sort(\User.infoWithID?.balance, .descending)
+            //.sort(\User.infoWithID?.balance, .descending)
             .range(..<11)
             .all()
         
         return users.map { topUsers -> [PlayerInfo] in
-            return topUsers.map { PlayerInfo(ratingData: $0.infoWithID?.ratingData, balance: $0.infoWithID?.balance) }
+            return topUsers
+                .sorted { $0.infoWithID?.balance ?? 0 > $1.infoWithID?.balance ?? 0}
+                .map { PlayerInfo(ratingData: $0.infoWithID?.ratingData, balance: $0.infoWithID?.balance) }
         }
     }
 }
