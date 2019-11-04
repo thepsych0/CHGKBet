@@ -65,15 +65,15 @@ class UsersController: RouteCollection {
     
     // MARK: Top
     
-    func topUsers(_ req: Request) throws -> Future<[[String: Double]]> {
+    func topPlayers(_ req: Request) throws -> Future<[PlayerInfo]> {
         let users = User.query(on: req)
             .filter(\User.ratingID != nil)
             .sort(\User.infoWithID?.balance)
             .range(..<10)
             .all()
         
-        return users.map { topUsers -> [[String: Double]] in
-            return topUsers.map { [$0.email: $0.infoWithID?.balance ?? 0] }
+        return users.map { topUsers -> [PlayerInfo] in
+            return topUsers.map { PlayerInfo(ratingData: $0.infoWithID?.ratingData, balance: $0.infoWithID?.balance) }
         }
     }
 }
@@ -121,7 +121,8 @@ private extension UsersController {
     }
 }
 
-struct RatingResponse: Codable, Content {
+struct RatingResponse: Content {
+    var id: String?
     var name: String?
     var patronymic: String?
     var surname: String?
