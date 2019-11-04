@@ -18,8 +18,11 @@ public func routes(_ router: Router) throws {
     let usersController = UsersController()
     try usersController.boot(router: router)
     basicAuthGroup.get("api", "users", "me", use: usersController.getUserInfo)
-    basicAuthGroup.post("api", "users", "rating", "updateID", use: usersController.setRatingID)
-    router.get("api", "users", "rating", "check", String.parameter) { req -> Future<RatingResponse> in
+    basicAuthGroup.post("api", "users", "rating", "setID", String.parameter) {req -> Future<UserInfo> in
+        let id = try req.parameters.next(String.self)
+        return try usersController.setRatingID(req: req, id: id)
+    }
+    router.get("api", "users", "rating", "checkID", String.parameter) { req -> Future<RatingResponse> in
         let id = try req.parameters.next(String.self)
         return try usersController.checkRatingID(req: req, id: id)
     }

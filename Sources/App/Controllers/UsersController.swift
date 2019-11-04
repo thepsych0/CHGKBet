@@ -45,21 +45,20 @@ class UsersController: RouteCollection {
             }
     }
 
-    func setRatingID(_ req: Request) throws -> Future<HTTPResponseStatus> {
+    func setRatingID(req: Request, id: String) throws -> Future<UserInfo> {
         var user = try req.requireAuthenticated(User.self)
-        guard let ratingID = req.query[String.self, at: "id"] else {
-            throw Abort(.badRequest, reason: "Parameter \"ratingID\" is required." , identifier: nil)
-        }
         let users = User.query(on: req)
-            .filter(\User.ratingID == ratingID)
+            .filter(\User.ratingID == id)
             .all()
-        return users.flatMap { [weak self] usersWithGivenRatingID -> Future<HTTPResponseStatus> in
+        return users.flatMap { [weak self] usersWithGivenRatingID -> Future<UserInfo> in
             guard let self = self else { throw Abort(.internalServerError, reason: "Unknown error.") }
             guard usersWithGivenRatingID.isEmpty else { throw Abort(.badRequest, reason: "User with this rating ID already exists.") }
-            user.ratingID = ratingID
-            return try self.checkRatingID(req: req, id: ratingID).flatMap { ratingResponse -> Future<HTTPResponseStatus> in
+            user.ratingID = id
+            return try self.checkRatingID(req: req, id: id).flatMap { ratingResponse -> Future<UserInfo> in
                 user.infoWithID?.ratingData = ratingResponse
-                return user.save(on: req).transform(to: .created)
+                return user.save(on: req).map { savedUser -> UserInfo in
+                    return user.infoWithID!
+                }
             }
         }
     }
