@@ -78,15 +78,15 @@ class UsersController: RouteCollection {
 //MARK: Helper
 private extension UsersController {
 
-    func registerUserHandler(_ request: Request, newUser: User) throws -> Future<HTTPResponseStatus> {
-        guard newUser.email.isValidEmail() else { throw Abort(.badRequest, reason: "Email is invalid.") }
+    func registerUserHandler(_ request: Request, newUser: User) throws -> Future<UserInfo> {
+        guard newUser.email.isValidEmail else { throw Abort(.badRequest, reason: "Email is invalid.") }
         return User.query(on: request).filter(\.email == newUser.email).first().flatMap { existingUser in
             guard existingUser == nil else {
                 throw Abort(.badRequest, reason: "A user with this login already exists.")
             }
 
             let tournaments = Tournament.query(on: request).all()
-            return tournaments.flatMap { tournaments -> Future<HTTPResponseStatus> in
+            return tournaments.flatMap { tournaments -> Future<UserInfo> in
                 let isInPeriod = tournaments.filter { tournament in
                     let difference = Date(timeIntervalSince1970: tournament.date).timeIntervalSince1970 - Date().timeIntervalSince1970
                     return difference > 0 && difference < tournamentPeriodInSeconds
@@ -108,7 +108,7 @@ private extension UsersController {
                     )
                 )
 
-                return persistedUser.save(on: request).transform(to: .created)
+                return persistedUser.save(on: request).transform(to: persistedUser.info!)
             }
         }
     }
