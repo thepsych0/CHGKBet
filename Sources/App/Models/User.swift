@@ -6,7 +6,7 @@ import Authentication
 
 struct User: Content, PostgreSQLModel, Migration {
     var id: Int?
-    private(set) var login: String
+    private(set) var email: String
     private(set) var password: String
     var ratingID: String? {
         didSet {
@@ -18,7 +18,7 @@ struct User: Content, PostgreSQLModel, Migration {
 }
 
 extension User: BasicAuthenticatable {
-    static let usernameKey: WritableKeyPath<User, String> = \.login
+    static let usernameKey: WritableKeyPath<User, String> = \.email
     static let passwordKey: WritableKeyPath<User, String> = \.password
 }
 
