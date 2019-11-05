@@ -21,11 +21,12 @@ final class BettingController {
                 guard bet.amount > 0 else { throw Abort(.badRequest, reason: "Bet amount should be greater than 0.") }
                 guard bet.amount <= user.infoWithID?.balance ?? 0 else { throw Abort(.badRequest, reason: "You don't have enough funds.") }
 
-                var betWithUserID = Bet(id: bet.id, eventID: bet.eventID, selectedOptionTitle: bet.selectedOptionTitle, amount: bet.amount)
-                betWithUserID.userID = user.id
+                var betToSave = Bet(id: bet.id, eventID: bet.eventID, selectedOptionTitle: bet.selectedOptionTitle, amount: bet.amount)
+                betToSave.userID = user.id
+                betToSave.date = Date().timeIntervalSince1970
                 user.infoWithID!.balance -= bet.amount
-                user.infoWithID!.betHistory.append(bet)
-                let saveBet = betWithUserID.save(on: req)
+                user.infoWithID!.betIDs.append(bet.id ?? -1)
+                let saveBet = betToSave.save(on: req)
                 let saveUser = user.save(on: req)
                 return saveBet.and(saveUser).transform(to: .created)
             }

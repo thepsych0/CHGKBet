@@ -16,10 +16,20 @@ class UsersController: RouteCollection {
         group.post(User.self, at: "register", use: registerUserHandler)
     }
 
-    func getUserInfo(_ req: Request) throws -> UserInfo {
+    func getUserInfo(_ req: Request) throws -> Future<UserInfo> {
         let user = try req.requireAuthenticated(User.self)
-        guard let userInfo = user.infoWithID else { throw Abort(.badRequest) }
-        return userInfo
+        guard var userInfo = user.infoWithID else { throw Abort(.badRequest) }
+        let query = Bet.query(on: req)
+            .join(\Bet.eventID, to: \Event.id)
+            .join(\Event.tournamentID, to: \Tournament.id)
+            .alsoDecode(Event.self)
+            .alsoDecode(Tournament.self)
+            .all()
+        return query.map { results in
+            let betHistory = results.map { BetHistory(bet: $0.0.0, tournament: $0.1, event: $0.0.1) }
+            userInfo.bets = betHistory
+            return userInfo
+        }
     }
 
     //MARK: Rating
@@ -112,7 +122,7 @@ private extension UsersController {
                         id: nil,
                         ratingURL: newUser.ratingID,
                         balance: balance,
-                        betHistory: []
+                        betIDs: []
                     )
                 )
 

@@ -44,5 +44,6 @@ struct UserInfo: Content, PostgreSQLModel, Migration {
     var ratingURL: String?
     var ratingData: RatingResponse?
     var balance: Double
-    var betHistory: [Bet]
+    var betIDs: [Int]
+    var bets: [BetHistory]?
 }

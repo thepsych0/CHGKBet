@@ -8,12 +8,33 @@ struct Bet: PostgreSQLModel {
     var selectedOptionTitle: String
     var amount: Double
     var success: Bool? = false
+    var date: Double?
 
     init(id: Int? = nil, eventID: Int, selectedOptionTitle: String, amount: Double) {
         self.id = id
         self.eventID = eventID
         self.selectedOptionTitle = selectedOptionTitle
         self.amount = amount
+    }
+}
+
+struct BetHistory: Content {
+    let id: Int?
+    let selectedOptionTitle: String
+    let amount: Double
+    let success: Bool
+    let date: Double
+    let tournament: Tournament
+    let event: Event
+
+    init(bet: Bet, tournament: Tournament, event: Event) {
+        self.id = bet.id
+        self.selectedOptionTitle = bet.selectedOptionTitle
+        self.amount = bet.amount
+        self.success = bet.success ?? false
+        self.date = bet.date ?? 0
+        self.tournament = tournament
+        self.event = event
     }
 }
 
