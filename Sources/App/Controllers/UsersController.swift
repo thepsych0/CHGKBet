@@ -21,8 +21,8 @@ class UsersController: RouteCollection {
         guard var userInfo = user.infoWithID else { throw Abort(.badRequest) }
         let query = Bet.query(on: req)
             .join(\Event.id, to: \Bet.eventID)
-            .join(\Tournament.id, to: \Event.id)
             .alsoDecode(Event.self)
+            .join(\Tournament.id, to: \Event.tournamentID)
             .alsoDecode(Tournament.self)
             .all()
         return query.map { results in
