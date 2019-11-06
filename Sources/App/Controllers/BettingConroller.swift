@@ -25,7 +25,7 @@ final class BettingController {
                 betToSave.userID = user.id
                 betToSave.date = Date().timeIntervalSince1970
                 user.infoWithID!.balance -= bet.amount
-                return bet.save(on: req).flatMap { result -> Future<HTTPResponseStatus> in
+                return betToSave.save(on: req).flatMap { result -> Future<HTTPResponseStatus> in
                     user.infoWithID!.betIDs.append(bet.id ?? -1)
                     return user.save(on: req).transform(to: .created)
                 }
