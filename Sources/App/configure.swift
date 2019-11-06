@@ -15,11 +15,11 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
 
     // Register middleware
     var middlewares = MiddlewareConfig() // Create _empty_ middleware config
-    // middlewares.use(FileMiddleware.self) // Serves files from `Public/` directory
+    middlewares.use(FileMiddleware.self) // Serves files from `Public/` directory
     middlewares.use(ErrorMiddleware.self) // Catches errors and converts to HTTP response
     services.register(middlewares)
 
-    // Configure a PostgreSQL database
+    /*// Configure a PostgreSQL database
     let config: PostgreSQLDatabaseConfig
 //    if let type = env.type, type == .production {
         config = PostgreSQLDatabaseConfig(url: "postgres://tbbahuxiiktnso:516fcc2af6165c87bb724eea1aae51cc1759203e5a59e6126d7e9f89bc541c07@ec2-54-220-0-91.eu-west-1.compute.amazonaws.com:5432/dv6a1uqbbflbf", transport: .unverifiedTLS)!
@@ -31,7 +31,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     // Register the configured PostgreSQL database to the database config.
     var databases = DatabasesConfig()
     databases.add(database: postgres, as: .psql)
-    services.register(databases)
+    services.register(databases)*/
 
     // Configure migrations
     var migrations = MigrationConfig()
