@@ -20,8 +20,8 @@ class UsersController: RouteCollection {
         let user = try req.requireAuthenticated(User.self)
         guard var userInfo = user.infoWithID else { throw Abort(.badRequest) }
         let query = Bet.query(on: req)
-            .join(\Bet.eventID, to: \Event.id)
-            .join(\Event.tournamentID, to: \Tournament.id)
+            .join(\Event.id, to: \Bet.eventID)
+            .join(\Tournament.id, to: \Event.id)
             .alsoDecode(Event.self)
             .alsoDecode(Tournament.self)
             .all()
