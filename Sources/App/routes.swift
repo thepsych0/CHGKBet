@@ -53,6 +53,10 @@ public func routes(_ router: Router) throws {
     // MARK: Top
     
     router.get("api", "top", use: usersController.topPlayers)
+
+    // MARK: FAQ
+    let faqController = FAQController()
+    router.get("api", "faq", use: faqController.getFAQ)
 }
 
 extension Bool: Content {}
