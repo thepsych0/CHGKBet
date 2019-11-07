@@ -17,18 +17,20 @@ class UsersController: RouteCollection {
     }
 
     func getUserInfo(_ req: Request) throws -> Future<UserInfo> {
-        let user = try req.requireAuthenticated(User.self)
-        guard var userInfo = user.infoWithID else { throw Abort(.badRequest) }
-        let query = Bet.query(on: req)
-            .join(\Event.id, to: \Bet.eventID)
-            .alsoDecode(Event.self)
-            .join(\Tournament.id, to: \Event.tournamentID)
-            .alsoDecode(Tournament.self)
-            .all()
-        return query.map { results in
-            let betHistory = results.map { BetHistory(bet: $0.0.0, tournament: $0.1, event: $0.0.1) }
-            userInfo.bets = betHistory
-            return userInfo
+        req.withPooledConnection(to: .psql) { connection -> EventLoopFuture<UserInfo> in
+            let user = try req.requireAuthenticated(User.self)
+            guard var userInfo = user.infoWithID else { throw Abort(.badRequest) }
+            let query = Bet.query(on: req)
+                .join(\Event.id, to: \Bet.eventID)
+                .alsoDecode(Event.self)
+                .join(\Tournament.id, to: \Event.tournamentID)
+                .alsoDecode(Tournament.self)
+                .all()
+            return query.map { results in
+                let betHistory = results.map { BetHistory(bet: $0.0.0, tournament: $0.1, event: $0.0.1) }
+                userInfo.bets = betHistory
+                return userInfo
+            }
         }
     }
 
@@ -56,19 +58,21 @@ class UsersController: RouteCollection {
     }
 
     func setRatingID(req: Request, id: String) throws -> Future<UserInfo> {
-        var user = try req.requireAuthenticated(User.self)
-        let users = User.query(on: req)
-            .filter(\User.ratingID == id)
-            .all()
-        return users.flatMap { [weak self] usersWithGivenRatingID -> Future<UserInfo> in
-            guard let self = self else { throw Abort(.internalServerError, reason: "Unknown error.") }
-            guard usersWithGivenRatingID.isEmpty else { throw Abort(.badRequest, reason: "User with this rating ID already exists.") }
-            user.ratingID = id
-            return try self.checkRatingID(req: req, id: id).flatMap { ratingResponse -> Future<UserInfo> in
-                user.infoWithID?.ratingData = ratingResponse
-                user.infoWithID?.ratingData?.id = id
-                return user.save(on: req).map { savedUser -> UserInfo in
-                    return user.infoWithID!
+        req.withPooledConnection(to: .psql) { connection -> EventLoopFuture<UserInfo> in
+            var user = try req.requireAuthenticated(User.self)
+            let users = User.query(on: req)
+                .filter(\User.ratingID == id)
+                .all()
+            return users.flatMap { [weak self] usersWithGivenRatingID -> Future<UserInfo> in
+                guard let self = self else { throw Abort(.internalServerError, reason: "Unknown error.") }
+                guard usersWithGivenRatingID.isEmpty else { throw Abort(.badRequest, reason: "User with this rating ID already exists.") }
+                user.ratingID = id
+                return try self.checkRatingID(req: req, id: id).flatMap { ratingResponse -> Future<UserInfo> in
+                    user.infoWithID?.ratingData = ratingResponse
+                    user.infoWithID?.ratingData?.id = id
+                    return user.save(on: req).map { savedUser -> UserInfo in
+                        return user.infoWithID!
+                    }
                 }
             }
         }
@@ -77,16 +81,18 @@ class UsersController: RouteCollection {
     // MARK: Top
     
     func topPlayers(_ req: Request) throws -> Future<[PlayerInfo]> {
-        let users = User.query(on: req)
-            .filter(\User.ratingID != nil)
-            //.sort(\User.infoWithID?.balance, .descending)
-            .range(..<11)
-            .all()
-        
-        return users.map { topUsers -> [PlayerInfo] in
-            return topUsers
-                .sorted { $0.infoWithID?.balance ?? 0 > $1.infoWithID?.balance ?? 0}
-                .map { PlayerInfo(ratingData: $0.infoWithID?.ratingData, balance: $0.infoWithID?.balance) }
+        req.withPooledConnection(to: .psql) { connection -> EventLoopFuture<[PlayerInfo]> in
+            let users = User.query(on: req)
+                .filter(\User.ratingID != nil)
+                //.sort(\User.infoWithID?.balance, .descending)
+                .range(..<11)
+                .all()
+
+            return users.map { topUsers -> [PlayerInfo] in
+                return topUsers
+                    .sorted { $0.infoWithID?.balance ?? 0 > $1.infoWithID?.balance ?? 0}
+                    .map { PlayerInfo(ratingData: $0.infoWithID?.ratingData, balance: $0.infoWithID?.balance) }
+            }
         }
     }
 }
@@ -95,39 +101,41 @@ class UsersController: RouteCollection {
 private extension UsersController {
 
     func registerUserHandler(_ request: Request, newUser: User) throws -> Future<UserInfo> {
-        guard newUser.email.isValidEmail else { throw Abort(.badRequest, reason: "Email is invalid.") }
-        return User.query(on: request).filter(\.email == newUser.email).first().flatMap { existingUser in
-            guard existingUser == nil else {
-                throw Abort(.badRequest, reason: "A user with this login already exists.")
-            }
-
-            let tournaments = Tournament.query(on: request).all()
-            return tournaments.flatMap { [weak self] tournaments -> Future<UserInfo> in
-                guard let self = self else { throw Abort(.internalServerError, reason: "Unknown error.") }
-                let nearbyTournaments = tournaments.filter { tournament in
-                    let difference = Date(timeIntervalSince1970: tournament.date).timeIntervalSince1970 - Date().timeIntervalSince1970
-                    return difference > 0 && difference < self.tournamentPeriodInSeconds
+        request.withPooledConnection(to: .psql) { connection -> EventLoopFuture<UserInfo> in
+            guard newUser.email.isValidEmail else { throw Abort(.badRequest, reason: "Email is invalid.") }
+            return User.query(on: request).filter(\.email == newUser.email).first().flatMap { existingUser in
+                guard existingUser == nil else {
+                    throw Abort(.badRequest, reason: "A user with this login already exists.")
                 }
-                let isInPeriod = !nearbyTournaments.isEmpty
 
-                let digest = try request.make(BCryptDigest.self)
-                let hashedPassword = try digest.hash(newUser.password)
-                let balance: Double = isInPeriod ? self.tournamentBalance + self.baseBalance : self.baseBalance
-                let persistedUser = User(
-                    id: nil,
-                    email: newUser.email,
-                    password: hashedPassword,
-                    ratingID: newUser.ratingID,
-                    info: UserInfo(
+                let tournaments = Tournament.query(on: request).all()
+                return tournaments.flatMap { [weak self] tournaments -> Future<UserInfo> in
+                    guard let self = self else { throw Abort(.internalServerError, reason: "Unknown error.") }
+                    let nearbyTournaments = tournaments.filter { tournament in
+                        let difference = Date(timeIntervalSince1970: tournament.date).timeIntervalSince1970 - Date().timeIntervalSince1970
+                        return difference > 0 && difference < self.tournamentPeriodInSeconds
+                    }
+                    let isInPeriod = !nearbyTournaments.isEmpty
+
+                    let digest = try request.make(BCryptDigest.self)
+                    let hashedPassword = try digest.hash(newUser.password)
+                    let balance: Double = isInPeriod ? self.tournamentBalance + self.baseBalance : self.baseBalance
+                    let persistedUser = User(
                         id: nil,
-                        ratingURL: newUser.ratingID,
-                        balance: balance,
-                        betIDs: []
+                        email: newUser.email,
+                        password: hashedPassword,
+                        ratingID: newUser.ratingID,
+                        info: UserInfo(
+                            id: nil,
+                            ratingURL: newUser.ratingID,
+                            balance: balance,
+                            betIDs: []
+                        )
                     )
-                )
 
-                return persistedUser.save(on: request).map { savedUser -> UserInfo in
-                    return savedUser.infoWithID!
+                    return persistedUser.save(on: request).map { savedUser -> UserInfo in
+                        return savedUser.infoWithID!
+                    }
                 }
             }
         }

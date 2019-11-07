@@ -44,6 +44,9 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     services.register(migrations)
 
     config.prefer(LeafRenderer.self, for: ViewRenderer.self)
+
+    let poolConfig = DatabaseConnectionPoolConfig(maxConnections: 2)
+    services.register(poolConfig)
 }
 
 extension Environment {

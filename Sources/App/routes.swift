@@ -16,6 +16,10 @@ public func routes(_ router: Router) throws {
       return try req.view().render("install-ios")
     }
 
+    router.get("install-android") { req -> Future<View> in
+      return try req.view().render("install-android")
+    }
+
     // MARK: Users
 
     let basicAuthMiddleware = User.basicAuthMiddleware(using: BCrypt)
