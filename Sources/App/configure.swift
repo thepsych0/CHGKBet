@@ -45,7 +45,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
 
     config.prefer(LeafRenderer.self, for: ViewRenderer.self)
 
-    let poolConfig = DatabaseConnectionPoolConfig(maxConnections: 2)
+    let poolConfig = DatabaseConnectionPoolConfig(maxConnections: 1)
     services.register(poolConfig)
 }
 

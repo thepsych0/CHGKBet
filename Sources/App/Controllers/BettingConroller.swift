@@ -3,7 +3,7 @@ import FluentPostgreSQL
 
 final class BettingController {
     func makeBet(_ req: Request) throws -> Future<UserInfo> {
-        req.withPooledConnection(to: .psql) { connecion -> EventLoopFuture<UserInfo> in
+        req.withNewConnection(to: .psql) { connecion -> EventLoopFuture<UserInfo> in
             var user = try req.requireAuthenticated(User.self)
             guard user.infoWithID != nil else { throw Abort(.internalServerError) }
 
