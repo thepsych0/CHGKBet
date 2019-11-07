@@ -6,6 +6,7 @@ enum Game: String {
     case brainNoF
     case si
     case ek
+    case other
 
     private var title: String {
         switch self {
@@ -17,6 +18,8 @@ enum Game: String {
             return "Своя игра"
         case .ek:
             return "Эрудит-квартет"
+        case .other:
+            return "Другое"
         }
     }
     
@@ -24,6 +27,8 @@ enum Game: String {
         switch self {
         case .brainNoF:
             return "Без фальстартов"
+        case .other:
+            return "События, не привязанные к конкретной игре"
         default:
             return nil
         }
