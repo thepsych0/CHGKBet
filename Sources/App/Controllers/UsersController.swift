@@ -101,9 +101,9 @@ private extension UsersController {
                 throw Abort(.badRequest, reason: "A user with this login already exists.")
             }
             
-            let tournaments = Tournament.query(on: request).all()
-            return tournaments.flatMap { [weak self] tournaments -> Future<UserInfo> in
-                guard let self = self else { throw Abort(.internalServerError, reason: "Unknown error.") }
+            let tournaments = ServerModels.tournaments
+            //return tournaments.flatMap { [weak self] tournaments -> Future<UserInfo> in
+                //guard let self = self else { throw Abort(.internalServerError, reason: "Unknown error.") }
                 let nearbyTournaments = tournaments.filter { tournament in
                     let difference = Date(timeIntervalSince1970: tournament.date).timeIntervalSince1970 - Date().timeIntervalSince1970
                     return difference > 0 && difference < self.tournamentPeriodInSeconds
@@ -129,7 +129,7 @@ private extension UsersController {
                 return persistedUser.save(on: request).map { savedUser -> UserInfo in
                     return savedUser.infoWithID!
                 }
-            }
+            //}
         }
     }
 }
