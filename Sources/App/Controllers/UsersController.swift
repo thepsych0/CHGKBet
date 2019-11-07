@@ -17,7 +17,7 @@ class UsersController: RouteCollection {
     }
 
     func getUserInfo(_ req: Request) throws -> Future<UserInfo> {
-        req.withNewConnection(to: .psql) { connection -> EventLoopFuture<UserInfo> in
+        req.withPooledConnection(to: .psql) { connection -> EventLoopFuture<UserInfo> in
             let user = try req.requireAuthenticated(User.self)
             guard var userInfo = user.infoWithID else { throw Abort(.badRequest) }
             let query = Bet.query(on: req)
@@ -58,7 +58,7 @@ class UsersController: RouteCollection {
     }
 
     func setRatingID(req: Request, id: String) throws -> Future<UserInfo> {
-        req.withNewConnection(to: .psql) { connection -> EventLoopFuture<UserInfo> in
+        req.withPooledConnection(to: .psql) { connection -> EventLoopFuture<UserInfo> in
             var user = try req.requireAuthenticated(User.self)
             let users = User.query(on: req)
                 .filter(\User.ratingID == id)
@@ -81,7 +81,7 @@ class UsersController: RouteCollection {
     // MARK: Top
     
     func topPlayers(_ req: Request) throws -> Future<[PlayerInfo]> {
-        req.withNewConnection(to: .psql) { connection -> EventLoopFuture<[PlayerInfo]> in
+        req.withPooledConnection(to: .psql) { connection -> EventLoopFuture<[PlayerInfo]> in
             let users = User.query(on: req)
                 .filter(\User.ratingID != nil)
                 //.sort(\User.infoWithID?.balance, .descending)
@@ -101,7 +101,7 @@ class UsersController: RouteCollection {
 private extension UsersController {
 
     func registerUserHandler(_ request: Request, newUser: User) throws -> Future<UserInfo> {
-        request.withNewConnection(to: .psql) { connection -> EventLoopFuture<UserInfo> in
+        request.withPooledConnection(to: .psql) { connection -> EventLoopFuture<UserInfo> in
             guard newUser.email.isValidEmail else { throw Abort(.badRequest, reason: "Email is invalid.") }
             return User.query(on: request).filter(\.email == newUser.email).first().flatMap { existingUser in
                 guard existingUser == nil else {
