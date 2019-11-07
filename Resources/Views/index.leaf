@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+#// 1
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  #// 2
+  <title>Hello World</title>
+</head>
+<body>
+  #// 3
+  <a href="itms-services://?action=download-manifest&url=https://chkbet-develop.vapor.cloud/manifest.plist">Install App</a>
+</body>
+</html>

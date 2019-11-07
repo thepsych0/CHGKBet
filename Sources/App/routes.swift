@@ -9,6 +9,9 @@ public func routes(_ router: Router) throws {
         return "It works!"
     }
 
+    let websiteController = WebsiteController()
+    try router.register(collection: websiteController)
+
     // MARK: Users
 
     let basicAuthMiddleware = User.basicAuthMiddleware(using: BCrypt)
