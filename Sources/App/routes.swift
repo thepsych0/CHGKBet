@@ -9,8 +9,12 @@ public func routes(_ router: Router) throws {
         return "It works!"
     }
 
-    let websiteController = WebsiteController()
-    try router.register(collection: websiteController)
+    //let websiteController = WebsiteController()
+    //try router.register(collection: websiteController)
+
+    router.get("install-ios") { req -> Future<View> in
+      return try req.view().render("install-ios")
+    }
 
     // MARK: Users
 
