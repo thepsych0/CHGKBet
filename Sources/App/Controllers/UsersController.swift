@@ -6,7 +6,7 @@ import Crypto
 class UsersController: RouteCollection {
 
     private let tournamentPeriodInSeconds: Double = 7 * 24 * 60 * 60
-    private let baseBalance: Double = 1000
+    private let baseBalance: Double = 2000
     private let tournamentBalance: Double = 500
     
     //MARK: Auth
