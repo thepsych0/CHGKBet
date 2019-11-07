@@ -5,7 +5,7 @@
   <title>Install</title>
 </head>
 <body>
-  <a href="https://itms-services://?action=download-manifest&url=https://chgkbet-develop.vapor.cloud/manifest.plist"">
+  <a href="itms-services://?action=download-manifest&url=https://chgkbet-develop.vapor.clod/manifest.plist">
   <img alt="Install App" src="install_app.png"
   width=500" height="140">
 </body>
