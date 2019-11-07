@@ -8,6 +8,6 @@
 </head>
 <body>
   #// 3
-  <a href="itms-services://?action=download-manifest&url=https://chkbet-develop.vapor.cloud/manifest.plist">Install App</a>
+  <a style="font-size: 30px" href="itms-services://?action=download-manifest&url=https://chkbet-develop.vapor.cloud/manifest.plist">Install App</a>
 </body>
 </html>
