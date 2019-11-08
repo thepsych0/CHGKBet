@@ -293,7 +293,7 @@ final class ServerModels {
                 Option(title: "Максим Дьяконов", coef: 420),
                 Option(title: "Другой", coef: 11)
             ],
-            gameID: "brainNoF",
+            gameID: "si",
             tournamentID: 1
         ),
         Event(
