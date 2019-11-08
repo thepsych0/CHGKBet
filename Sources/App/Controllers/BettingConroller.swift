@@ -13,6 +13,7 @@ final class BettingController {
             
 
             guard !events.isEmpty else { throw Abort(.badRequest, reason: "Incorrect event ID.") }
+            guard events.first!.gameID != "si" else { throw Abort(.badRequest, reason: "expired") }
             guard events.first!.options.contains(where: { $0.title == bet.selectedOptionTitle }) else {
                 throw Abort(.badRequest, reason: "Incorrect option title.")
             }
