@@ -52,7 +52,7 @@ public func routes(_ router: Router) throws {
     }
     
     let eventsController = EventsController()
-    router.get("api", "events", Int.parameter, String.parameter) { req -> EventLoopFuture<[Event]> in
+    router.get("api", "events", Int.parameter, String.parameter) { req -> [Event] in
         let tournamentID = try req.parameters.next(Int.self)
         let gameID = try req.parameters.next(String.self)
         return try eventsController.index(req, tournamentID: tournamentID, gameID: gameID)
