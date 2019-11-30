@@ -55,6 +55,7 @@ struct Option: PostgreSQLModel {
     var id: Int?
     var title: String?
     var coef: Double?
+    var success: Bool?
 }
 
 extension Option: Migration { }
