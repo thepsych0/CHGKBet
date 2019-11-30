@@ -52,7 +52,7 @@ public func routes(_ router: Router) throws {
     }
     
     let eventsController = EventsController()
-    router.get("api", "events", Int.parameter, String.parameter) { req -> [Event] in
+    router.get("api", "events", Int.parameter, String.parameter) { req -> Future<[Event]> in
         let tournamentID = try req.parameters.next(Int.self)
         let gameID = try req.parameters.next(String.self)
         return try eventsController.index(req, tournamentID: tournamentID, gameID: gameID)
@@ -66,8 +66,15 @@ public func routes(_ router: Router) throws {
     router.get("api", "top", use: usersController.topPlayers)
 
     // MARK: FAQ
+    
     let faqController = FAQController()
     router.get("api", "faq", use: faqController.getFAQ)
+    
+    // MARK: Instruments
+    
+    let instrumentsController = InstrumentsController()
+    router.get("instruments", "setAvailable", use: instrumentsController.setAvailable)
+    router.get("instruments", "returnLateBets", use: instrumentsController.returnLateBets)
 }
 
 extension Bool: Content {}

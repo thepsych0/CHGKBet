@@ -2,7 +2,10 @@ import Vapor
 import FluentPostgreSQL
 
 final class EventsController {
-    func index(_ req: Request, tournamentID: Int, gameID: String) throws -> [Event] {
-        return ServerModels.events.filter { $0.tournamentID == tournamentID && $0.gameID == gameID }
+    func index(_ req: Request, tournamentID: Int, gameID: String) throws -> Future<[Event]> {
+        return Event.query(on: req)
+            .filter(\Event.tournamentID == tournamentID)
+            .filter(\Event.gameID == gameID)
+            .all()
     }
 }

@@ -9,6 +9,7 @@ struct Bet: PostgreSQLModel {
     var amount: Double
     var success: Bool? = false
     var date: Double?
+    var returned: Bool?
 
     init(id: Int? = nil, eventID: Int, selectedOptionTitle: String, amount: Double) {
         self.id = id
