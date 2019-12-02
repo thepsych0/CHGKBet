@@ -63,7 +63,7 @@ public func routes(_ router: Router) throws {
     
     // MARK: Top
     
-    router.get("api", "top", use: usersController.topPlayers)
+    basicAuthGroup.get("api", "top", use: usersController.topPlayers)
 
     // MARK: FAQ
     

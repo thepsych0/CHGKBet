@@ -81,17 +81,19 @@ class UsersController: RouteCollection {
         let user = try req.requireAuthenticated(User.self)
         let users = User.query(on: req)
             //.filter(\User.ratingID != nil)
-            //.sort(\User.infoWithID?.balance, .descending)
-            .range(..<11)
+            //.sort(\User.infoWithID!.balance, .descending)
+            //.range(..<11)
             .all()
         
         return users.map { topUsers -> [PlayerInfo] in
             return topUsers
-                .sorted { $0.infoWithID?.balance ?? 0 > $1.infoWithID?.balance ?? 0}
+                .sorted { $0.infoWithID?.balance ?? 0 < $1.infoWithID?.balance ?? 0}
                 .compactMap { player in
                     guard player.id != nil, let balance = player.infoWithID?.balance else { return nil }
                     return PlayerInfo(name: player.id == user.id ? "Я" : "Кто-то", balance: balance)
                 }
+                .suffix(11)
+                .reversed()
         }
     }
 }
