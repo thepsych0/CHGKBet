@@ -78,8 +78,9 @@ class UsersController: RouteCollection {
     // MARK: Top
     
     func topPlayers(_ req: Request) throws -> Future<[PlayerInfo]> {
+        let user = try req.requireAuthenticated(User.self)
         let users = User.query(on: req)
-            .filter(\User.ratingID != nil)
+            //.filter(\User.ratingID != nil)
             //.sort(\User.infoWithID?.balance, .descending)
             .range(..<11)
             .all()
@@ -87,7 +88,10 @@ class UsersController: RouteCollection {
         return users.map { topUsers -> [PlayerInfo] in
             return topUsers
                 .sorted { $0.infoWithID?.balance ?? 0 > $1.infoWithID?.balance ?? 0}
-                .map { PlayerInfo(ratingData: $0.infoWithID?.ratingData, balance: $0.infoWithID?.balance) }
+                .compactMap { player in
+                    guard player.id != nil, let balance = player.infoWithID?.balance else { return nil }
+                    return PlayerInfo(name: player.id == user.id ? "Я" : "Кто-то", balance: balance)
+                }
         }
     }
 }
