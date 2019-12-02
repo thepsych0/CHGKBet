@@ -14,10 +14,10 @@ class InstrumentsController {
                 var event = result.0
                 let tournament = result.1
                 if Date().timeIntervalSince1970 > tournament.date {
-                    if event.available {
+                    if event.isAvailable {
                         completedCount += 1
                     }
-                    event.available = false
+                    event.isAvailable = false
                     newEvents.append(event)
                 }
             }
@@ -91,9 +91,11 @@ class InstrumentsController {
             for result in results {
                 var bet = result.0
                 let event = result.1
-                guard bet.success == nil, let eventSuccess = event.success else { return (successCount: 0, failedCount: 0) }
-                bet.success = eventSuccess
-                eventSuccess ? (successCount += 1) : (failedCount += 1)
+                guard bet.success == nil,
+                    let eventOptionSuccess = event.options.first(where: { $0.title == bet.selectedOptionTitle })?.success
+                    else { return (successCount: 0, failedCount: 0) }
+                bet.success = eventOptionSuccess
+                eventOptionSuccess ? (successCount += 1) : (failedCount += 1)
             }
             
             return (successCount: successCount, failedCount: failedCount)

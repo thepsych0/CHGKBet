@@ -7,26 +7,7 @@ struct Event: PostgreSQLModel {
     var options: [Option]
     let gameID: String
     let tournamentID: Int
-    var available: Bool
-    var success: Bool?
-    var state: State {
-        if available {
-            return .available
-        } else {
-            if let success = success {
-                return success ? .passed : .failed
-            } else {
-                return .waiting
-            }
-        }
-    }
-    
-    enum State: String {
-        case passed
-        case failed
-        case available
-        case waiting
-    }
+    var isAvailable: Bool
 
     init(
         id: Int? = nil,
@@ -42,8 +23,7 @@ struct Event: PostgreSQLModel {
         self.options = options
         self.gameID = gameID
         self.tournamentID = tournamentID
-        self.available = available
-        self.success = success
+        self.isAvailable = available
     }
 }
 

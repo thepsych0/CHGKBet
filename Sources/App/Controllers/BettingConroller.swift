@@ -11,12 +11,13 @@ final class BettingController {
             
             let events = Event.query(on: req)
                 .filter(\Event.id == bet.eventID)
-                .all()
+                .first()
             
-            return events.flatMap { events -> Future<UserInfo> in
-                guard !events.isEmpty else { throw Abort(.badRequest, reason: "Incorrect event ID.") }
-                guard events.first!.options.contains(where: { $0.title == bet.selectedOptionTitle }) else {
-                    throw Abort(.badRequest, reason: "Incorrect option title.")
+            return events.flatMap { event -> Future<UserInfo> in
+                guard let event = event else { throw Abort(.badRequest, reason: "incorrectEventID") }
+                guard event.isAvailable else { throw Abort(.badRequest, reason: "unavailableEvent") }
+                guard event.options.contains(where: { $0.title == bet.selectedOptionTitle }) else {
+                    throw Abort(.badRequest, reason: "incorrectOptionTitle")
                 }
                 guard bet.amount > 0 else { throw Abort(.badRequest, reason: "Bet amount should be greater than 0.") }
                 guard bet.amount <= user.infoWithID?.balance ?? 0 else { throw Abort(.badRequest, reason: "You don't have enough funds.") }
