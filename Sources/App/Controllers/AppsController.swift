@@ -9,9 +9,18 @@ final class AppsController {
 
         return AppVersions(appVersionCurrent: os.appVersionCurrent, appVersionMinimum: os.appVersionMinimum)
     }
+
+    func getApp(_ req: Request, os: AppOS) throws -> Future<View> {
+        switch os {
+        case .iOS:
+            return try req.view().render("install-ios")
+        case .android:
+            return try req.view().render("install-android")
+        }
+    }
 }
 
-struct AppVersions {
+struct AppVersions: Content {
     let appVersionCurrent: String
     let appVersionMinimum: String
 }

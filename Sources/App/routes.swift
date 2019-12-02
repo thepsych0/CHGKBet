@@ -12,12 +12,16 @@ public func routes(_ router: Router) throws {
     //let websiteController = WebsiteController()
     //try router.register(collection: websiteController)
 
-    router.get("install-ios") { req -> Future<View> in
-      return try req.view().render("install-ios")
-    }
+    // MARK: Apps
 
+    let appsController = AppsController()
+    router.get("api", "get-versions", use: appsController.getVersion)
+
+    router.get("install-ios") { req -> Future<View> in
+        return try appsController.getApp(req, os: .iOS)
+    }
     router.get("install-android") { req -> Future<View> in
-      return try req.view().render("install-android")
+        return try appsController.getApp(req, os: .android)
     }
 
     // MARK: Users
@@ -73,8 +77,8 @@ public func routes(_ router: Router) throws {
     // MARK: Instruments
     
     let instrumentsController = InstrumentsController()
-    router.get("instruments", "setAvailable", use: instrumentsController.setAvailable)
-    router.get("instruments", "returnLateBets", use: instrumentsController.returnLateBets)
+    router.get("instruments", "set-available", use: instrumentsController.setAvailable)
+    router.get("instruments", "return-late-bets", use: instrumentsController.returnLateBets)
 }
 
 extension Bool: Content {}
