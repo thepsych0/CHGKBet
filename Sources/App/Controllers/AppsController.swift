@@ -4,7 +4,7 @@ import FluentPostgreSQL
 final class AppsController {
 
     func getVersion(_ req: Request) throws -> AppVersions {
-        guard let osString = req.http.headers.firstValue(name: HTTPHeaderName("OS")) else { throw Abort(.badRequest, reason: "noOSHeader") }
+        guard let osString = req.http.headers.firstValue(name: HTTPHeaderName("os")) else { throw Abort(.badRequest, reason: "noOSHeader") }
         guard let os = AppOS(rawValue: osString) else { throw Abort(.badRequest, reason: "unsupportedOS") }
 
         return AppVersions(appVersionCurrent: os.appVersionCurrent, appVersionMinimum: os.appVersionMinimum)
