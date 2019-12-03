@@ -17,7 +17,17 @@ class UsersController: RouteCollection {
     }
     
     func getUserInfo(_ req: Request) throws -> Future<UserInfo> {
-        let user = try req.requireAuthenticated(User.self)
+        var user = try req.requireAuthenticated(User.self)
+        guard let osString = req.http.headers.firstValue(name: HTTPHeaderName("os")),
+        let os = AppOS(rawValue: osString),
+        let device = req.http.headers.firstValue(name: HTTPHeaderName("device")),
+        let version = req.http.headers.firstValue(name: HTTPHeaderName("version")) else {
+            throw Abort(.badRequest)
+        }
+        user.latestOS = os.rawValue
+        user.latestDevice = device
+        user.latestVersion = version
+        user.save(on: req)
         guard var userInfo = user.infoWithID else { throw Abort(.badRequest) }
         let query = Bet.query(on: req)
             .filter(\Bet.userID == user.id)

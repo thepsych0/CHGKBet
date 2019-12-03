@@ -24,6 +24,9 @@ struct User: Content, PostgreSQLModel, Migration {
             info = newValue
         }
     }
+    var latestOS: String?
+    var latestDevice: String?
+    var latestVersion: String?
 
     init(id: Int? = nil, email: String, password: String, ratingID: String? = nil, info: UserInfo? = nil) {
         self.id = id
