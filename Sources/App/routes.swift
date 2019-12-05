@@ -79,6 +79,7 @@ public func routes(_ router: Router) throws {
     let instrumentsController = InstrumentsController()
     router.get("instruments", "set-available", use: instrumentsController.setAvailable)
     router.get("instruments", "return-late-bets", use: instrumentsController.returnLateBets)
+    router.get("instruments", "set-success-for-bets", use: instrumentsController.setSuccessForBets)
 }
 
 extension Bool: Content {}

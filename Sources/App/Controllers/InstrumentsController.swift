@@ -22,7 +22,7 @@ class InstrumentsController {
                 }
             }
             
-            newEvents.forEach { $0.save(on: req) }
+            newEvents.forEach { _ = $0.save(on: req) }
             return completedCount
         }
     }
@@ -70,7 +70,7 @@ class InstrumentsController {
                         newUsers.append(newUser)
                     }
                 }
-                _ = newUsers.forEach { $0.save(on: req) }
+                newUsers.forEach { _ = $0.save(on: req) }
                 return descriptions
             }
         }
@@ -78,7 +78,7 @@ class InstrumentsController {
     
     
     
-    func setSuccessForBets(_ req: Request) -> Future<(successCount: Int, failedCount: Int)> {
+    func setSuccessForBets(_ req: Request) -> Future<SuccessSettingResults> {
         let query = Bet.query(on: req)
             .join(\Event.id, to: \Bet.eventID)
             .alsoDecode(Event.self)
@@ -86,19 +86,29 @@ class InstrumentsController {
         
         var successCount = 0
         var failedCount = 0
+
+        var betsToSave = [Bet]()
         
-        return query.map { results -> (successCount: Int, failedCount: Int) in
+        return query.map { results -> SuccessSettingResults in
             for result in results {
                 var bet = result.0
                 let event = result.1
                 guard bet.success == nil,
                     let eventOptionSuccess = event.options.first(where: { $0.title == bet.selectedOptionTitle })?.success
-                    else { return (successCount: 0, failedCount: 0) }
+                    else { continue }
                 bet.success = eventOptionSuccess
+                betsToSave.append(bet)
                 eventOptionSuccess ? (successCount += 1) : (failedCount += 1)
             }
+
+            betsToSave.forEach { _ = $0.save(on: req) }
             
-            return (successCount: successCount, failedCount: failedCount)
+            return .init(successCount: successCount, failedCount: failedCount)
         }
     }
+}
+
+struct SuccessSettingResults: Content {
+    let successCount: Int
+    let failedCount: Int
 }
