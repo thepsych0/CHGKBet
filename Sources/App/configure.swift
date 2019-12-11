@@ -57,5 +57,14 @@ extension Environment {
     enum EnvironmentType: String {
         case development
         case production
+
+        var serverAddress: String {
+            switch self {
+            case .production:
+                return "https://chgkbet.vapor.cloud"
+            case .development:
+                return "https://chgkbet-develop.vapor.cloud"
+            }
+        }
     }
 }
