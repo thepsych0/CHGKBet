@@ -106,6 +106,35 @@ class InstrumentsController {
             return .init(successCount: successCount, failedCount: failedCount)
         }
     }
+
+    func countUsersBalances(_ req: Request) -> Future<[Double]> {
+        let betQuery = Bet.query(on: req)
+            .join(\Event.id, to: \Bet.eventID)
+            .alsoDecode(Event.self)
+            .all()
+        let query = betQuery.and(User.query(on: req).all())
+
+        return query.map { results -> [Double] in
+            for betAndEvent in results.0 {
+                let bet = betAndEvent.0
+                if bet.success ?? false {
+                    guard !bet.counted else { continue }
+                    let user = results.1.first(where: { $0.id == bet.userID } )
+                    guard var userUnwrapped = user else {
+                        _ = bet.delete(on: req)
+                        continue
+                    }
+                    guard let option = betAndEvent.1.options.first(where: { $0.title == bet.selectedOptionTitle }),
+                        let coef = option.coef
+                        else { continue }
+                    userUnwrapped.infoWithID?.balance += bet.amount * coef
+                    _ = userUnwrapped.save(on: req)
+                }
+            }
+
+            return results.1.compactMap { $0.infoWithID?.balance }
+        }
+    }
 }
 
 struct SuccessSettingResults: Content {
