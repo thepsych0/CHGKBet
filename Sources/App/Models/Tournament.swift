@@ -11,6 +11,7 @@ final class Tournament: PostgreSQLModel {
         return tempGames.count == games.count ? tempGames : []
     }
     var logoURL: String?
+    var isOver: Bool?
 
     init(id: Int? = nil, title: String, date: Double, games: [String]) {
         self.id = id

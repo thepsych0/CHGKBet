@@ -6,8 +6,12 @@ final class TournamentsController {
         let query = Tournament.query(on: req).all()
         return query.map { tournaments -> [Tournament] in
             let env = try! Environment.detect()
-            print(env.name)
-            tournaments.forEach { $0.logoURL = "\(env.type!.serverAddress)/logo/tournaments/\($0.id!).png" }
+            tournaments.forEach {
+                if let serverAddress = env.type?.serverAddress, let id = $0.id {
+                    $0.logoURL = "\(serverAddress)/logo/tournaments/\(id).png"
+                }
+                $0.isOver = $0.date <= Date().timeIntervalSince1970
+            }
             return tournaments
         }
     }
