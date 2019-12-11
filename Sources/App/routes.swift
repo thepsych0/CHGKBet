@@ -6,12 +6,10 @@ import Crypto
 public func routes(_ router: Router) throws {
     // Basic "It works" example
     router.get { req -> String in
-        let some = try! Environment.detect()
-        return "\(some.name), \(NIOServerConfig.default())"
+        let env = try! Environment.detect()
+        print(req.http.headers[.host])
+        return "\(env.name), \(req.http.headers[.host]))"
     }
-
-    //let websiteController = WebsiteController()
-    //try router.register(collection: websiteController)
 
     // MARK: Apps
 
