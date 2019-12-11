@@ -10,6 +10,7 @@ final class Tournament: PostgreSQLModel {
         let tempGames = games.compactMap { Game(rawValue: $0) }
         return tempGames.count == games.count ? tempGames : []
     }
+    var logoURL: String?
 
     init(id: Int? = nil, title: String, date: Double, games: [String]) {
         self.id = id

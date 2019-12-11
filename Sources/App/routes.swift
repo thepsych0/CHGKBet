@@ -5,8 +5,9 @@ import Crypto
 /// Register your application's routes here.
 public func routes(_ router: Router) throws {
     // Basic "It works" example
-    router.get { req in
-        return "It works!"
+    router.get { req -> String in
+        let some = try! Environment.detect()
+        return "\(some.name), \(NIOServerConfig.default())"
     }
 
     //let websiteController = WebsiteController()
@@ -79,6 +80,7 @@ public func routes(_ router: Router) throws {
     let instrumentsController = InstrumentsController()
     router.get("instruments", "set-available", use: instrumentsController.setAvailable)
     router.get("instruments", "return-late-bets", use: instrumentsController.returnLateBets)
+    router.get("instruments", "set-success-for-bets", use: instrumentsController.setSuccessForBets)
 }
 
 extension Bool: Content {}
