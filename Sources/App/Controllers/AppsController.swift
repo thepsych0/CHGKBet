@@ -34,7 +34,7 @@ enum AppOS: String {
         case .iOS:
             return "1.3"
         case .android:
-            return ""
+            return "1.3"
         }
     }
 
@@ -43,7 +43,7 @@ enum AppOS: String {
         case .iOS:
             return "1.3"
         case .android:
-            return ""
+            return "1.3"
         }
     }
 }
