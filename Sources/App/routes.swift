@@ -79,6 +79,11 @@ public func routes(_ router: Router) throws {
     router.get("instruments", "set-available", use: instrumentsController.setAvailable)
     router.get("instruments", "return-late-bets", use: instrumentsController.returnLateBets)
     router.get("instruments", "set-success-for-bets", use: instrumentsController.setSuccessForBets)
+    router.get("instruments", "count-users-balances", use: instrumentsController.countUsersBalances)
+    router.get("instruments", "add-money-to-every-account", Double.parameter) { req -> Future<[Double]> in
+        let sum = try req.parameters.next(Double.self)
+        return instrumentsController.addMoneyToEveryAccount(req: req, sum: sum)
+    }
 }
 
 extension Bool: Content {}

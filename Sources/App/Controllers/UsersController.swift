@@ -27,7 +27,7 @@ class UsersController: RouteCollection {
         user.latestOS = os.rawValue
         user.latestDevice = device
         user.latestVersion = version
-        user.save(on: req)
+        _ = user.save(on: req)
         guard var userInfo = user.infoWithID else { throw Abort(.badRequest) }
         let query = Bet.query(on: req)
             .filter(\Bet.userID == user.id)
@@ -89,18 +89,15 @@ class UsersController: RouteCollection {
     
     func topPlayers(_ req: Request) throws -> Future<[PlayerInfo]> {
         let user = try req.requireAuthenticated(User.self)
-        let users = User.query(on: req)
-            //.filter(\User.ratingID != nil)
-            //.sort(\User.infoWithID!.balance, .descending)
-            //.range(..<11)
-            .all()
-        
-        return users.map { topUsers -> [PlayerInfo] in
+        let usersQuery = User.query(on: req).all()
+
+        return usersQuery.map { topUsers -> [PlayerInfo] in
             return topUsers
                 .sorted { $0.infoWithID?.balance ?? 0 < $1.infoWithID?.balance ?? 0}
                 .compactMap { player in
                     guard player.id != nil, let balance = player.infoWithID?.balance else { return nil }
                     return PlayerInfo(name: player.id == user.id ? "Я" : "Кто-то", balance: balance)
+                    //return PlayerInfo(name: player.email, balance: balance)
                 }
                 .suffix(11)
                 .reversed()
