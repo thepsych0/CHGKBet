@@ -156,6 +156,20 @@ class InstrumentsController {
             return newUsers.compactMap { $0.infoWithID?.balance }
         }
     }
+
+    func addMoneyToEveryAccount(req: Request, sum: Double) -> Future<[Double]> {
+        User.query(on: req).all().flatMap { users -> Future<[Double]> in
+            let queries = users.map { user -> Future<User> in
+                var newUser: User = user
+                newUser.infoWithID?.balance += sum
+                return newUser.save(on: req)
+            }
+            let query = queries.flatten(on: req)
+            return query.map { users -> [Double] in
+                return users.map { $0.infoWithID?.balance ?? -1 }
+            }
+        }
+    }
 }
 
 //let betQuery = Bet.query(on: req)
