@@ -120,7 +120,7 @@ class InstrumentsController {
             for betAndEvent in results.0 {
                 let bet = betAndEvent.0
                 if bet.success ?? false {
-                    guard !bet.counted else { continue }
+                    guard let counted = bet.counted, !counted else { continue }
                     let user = results.1.first(where: { $0.id == bet.userID } )
                     guard let userUnwrapped = user else {
                         _ = bet.delete(on: req)
