@@ -4,7 +4,7 @@ import Fluent
 import FluentPostgreSQL
 import Authentication
 
-struct User: Content, PostgreSQLModel, Migration {
+struct User: Content, PostgreSQLModel, Migration, Equatable {
     var id: Int?
     private(set) var email: String
     private(set) var password: String
@@ -34,6 +34,10 @@ struct User: Content, PostgreSQLModel, Migration {
         self.password = password
         self.ratingID = ratingID
         self.info = info
+    }
+    
+    static func == (lhs: User, rhs: User) -> Bool {
+        return lhs.id == rhs.id
     }
 }
 
