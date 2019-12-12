@@ -129,9 +129,15 @@ class InstrumentsController {
                         else { continue }
                     userUnwrapped.infoWithID?.balance += bet.amount * coef
                     _ = userUnwrapped.save(on: req)
+                    var newBet = bet
+                    newBet.counted = true
+                    _ = newBet.save(on: req)
+                } else {
+                    var newBet = bet
+                    newBet.counted = true
+                    _ = newBet.save(on: req)
                 }
             }
-
             return results.1.compactMap { $0.infoWithID?.balance }
         }
     }
