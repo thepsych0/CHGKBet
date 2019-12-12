@@ -12,7 +12,7 @@ final class TournamentsController {
                 }
                 $0.isOver = $0.date <= Date().timeIntervalSince1970
             }
-            return tournaments
+            return tournaments.sorted(by: { $0.date > $1.date })
         }
     }
 }
