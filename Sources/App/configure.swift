@@ -61,9 +61,9 @@ extension Environment {
         var serverAddress: String {
             switch self {
             case .production:
-                return "https://chgkbet.vapor.cloud"
+                return "https://chgk-bet.herokuapp.com"
             case .develop:
-                return "https://chgkbet-develop.vapor.cloud"
+                return "https://chgk-bet.herokuapp.com"
             }
         }
     }
