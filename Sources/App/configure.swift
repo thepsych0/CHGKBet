@@ -24,7 +24,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
     // Configure a PostgreSQL database
     let dbConfig: PostgreSQLDatabaseConfig
 //    if let type = env.type, type == .production {
-        dbConfig = PostgreSQLDatabaseConfig(url: "postgres://tbbahuxiiktnso:516fcc2af6165c87bb724eea1aae51cc1759203e5a59e6126d7e9f89bc541c07@ec2-54-220-0-91.eu-west-1.compute.amazonaws.com:5432/dv6a1uqbbflbf", transport: .unverifiedTLS)!
+        dbConfig = PostgreSQLDatabaseConfig(url: "postgres://bcffjvjvkgeosf:f4ffc55ea016d9393dcf64b5228543cc0d5a6916cc234650c79fb741559cbaef@ec2-54-228-250-82.eu-west-1.compute.amazonaws.com:5432/d3hgolk8rdq88d", transport: .unverifiedTLS)!
 //    } else {
 //        config = PostgreSQLDatabaseConfig(hostname: "localhost", port: 5432, username: "thepsych0", database: "chgkbet", password: nil, transport: .cleartext)
 //    }
